@@ -37,3 +37,14 @@ db.contacts.dropIndex({
   'dob.age': 1
 });
 
+// ------------------------- Creating Compound Indexes ---------------------
+// create a compound index with field age and gender in both ascending order
+db.contacts.createIndex({ 'dob.age': 1, gender: 1 });
+
+// find document with age 35 and gender male include performance info
+db.contacts.explain('executionStats').find({ 'dob.age': 35, gender: 'male' });  
+
+// find a document with age 35 then find a document with gender male include performance info what do you notice with these separate queries?
+db.contacts.explain('executionStats').find({ 'dob.age': 35 });
+db.contacts.explain('executionStats').find({ gender: 'male' });
+
