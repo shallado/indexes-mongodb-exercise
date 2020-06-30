@@ -18,7 +18,9 @@ db.contacts.explain().find({
 
 // create an index for age field and have the index be ordered in ascending order
 // make sure to get the performance of the query before adding an index to compare performance
-db.contacts.createIndex({ 'dob.age': 1 });
+db.contacts.createIndex({
+  'dob.age': 1
+});
 
 // compare performance with query that was done without index with the one with and index
 // compare fields
@@ -39,12 +41,47 @@ db.contacts.dropIndex({
 
 // ------------------------- Creating Compound Indexes ---------------------
 // create a compound index with field age and gender in both ascending order
-db.contacts.createIndex({ 'dob.age': 1, gender: 1 });
+db.contacts.createIndex({
+  'dob.age': 1,
+  gender: 1
+});
 
 // find document with age 35 and gender male include performance info
-db.contacts.explain('executionStats').find({ 'dob.age': 35, gender: 'male' });  
+db.contacts.explain('executionStats').find({
+  'dob.age': 35,
+  gender: 'male'
+});
 
 // find a document with age 35 then find a document with gender male include performance info what do you notice with these separate queries?
-db.contacts.explain('executionStats').find({ 'dob.age': 35 });
-db.contacts.explain('executionStats').find({ gender: 'male' });
+db.contacts.explain('executionStats').find({
+  'dob.age': 35
+});
+db.contacts.explain('executionStats').find({
+  gender: 'male'
+});
 
+// ------------------------- Using Indexes for Sorting ---------------------
+// find documents with age field 35 and sort by gender in ascending order
+db.contacts.explain('executionStats').find({
+  'dob.age': 35
+}).sort({
+  gender: 1
+});
+
+// ------------------------- Understanding Default Index ---------------------
+// shows all indexes we do have 
+db.contacts.getIndexes();
+
+// ------------------------- Configuring Index -----------------------
+// create an index fo email field that is ascending order and make sure there are not duplicate emails in this index
+db.contacts.createIndex({ email: 1 }, { unique: true });
+
+// ------------------------- Understanding Partial Filters ---------------------
+// create an index for age field in ascending order and only for documents which have the age field that have the gender field as male
+db.contacts.createIndex({ 
+  'dob.age': 1 
+}, {
+  partialFilterExpression: {
+    gender: 'male'
+  }
+});
