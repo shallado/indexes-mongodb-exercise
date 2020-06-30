@@ -259,3 +259,78 @@ db.products.find({
 }).pretty();
 
 // --------------------- Setting the Default Language & Using Weights ---------
+// products
+
+// drop the title and description index
+db.products.dropIndex('title_text_description_text');
+
+// create a text index for the title and description fields set the weight for title field to 1 and description field to 10
+db.products.createIndex({
+  title: 'text',
+  description: 'text'
+}, {
+  weights: {
+    title: 1,
+    description: 10
+  }
+});
+
+// now find the text 'red' in either title or description field, print out the textScore and take note of it
+
+// drop the title and description index
+db.products.dropIndex('title_text_description_text');
+
+// create a text index for the title and description field
+db.products.createIndex({
+  title: 'text',
+  description: 'text'
+}, {
+  default_language: 'english'
+});
+
+// now find the text 'red' in either title or description field, print out the textScore and compare textScore to the textScore with weights of text index fields being modified
+db.products.find({
+  $text: {
+    $search: "red"
+  }
+}, {
+  score: {
+    $meta: "textScore"
+  }
+}).pretty();
+
+// ------------------------- Building Indexes -----------
+// ratings collection
+
+// execute command mongo credit-rating.js
+
+// create an index for the age field in ascending order
+db.ratings.createIndex({
+  age: 1
+});
+
+// find a documents that have an age field value that is greater than 80 and give me execution stats
+db.ratings.explain('executionStats').find({
+  age: {
+    $gt: 80
+  }
+});
+
+// drop the index age 
+db.ratings.dropIndex({
+  age: 1
+});
+
+// repeat the same query above
+db.ratings.explain('executionStats').find({
+  age: {
+    $gt: 80
+  }
+});
+
+// create an index for the age field in ascending order but have it run in the background rather than the foreground
+db.ratings.createIndex({
+  age: 1
+}, {
+  background: true
+});
