@@ -85,3 +85,71 @@ db.contacts.createIndex({
     gender: 'male'
   }
 });
+
+// ------------------------- Applying the Partial Index -----------------------
+// users collection
+
+// add two documents with name fields Max, Manu and email field max@test.com, manu@test.com
+db.users.insertMany([{
+  name: 'Max',
+  email: 'max@test.com'
+}, {
+  name: 'Manu',
+  email: 'manu@test.com'
+}]);
+
+// create an index for the email field in ascending order also prevent duplicate email values from being added
+db.users.createIndex({ 
+  email: 1 
+}, { 
+  unique: true
+});
+
+// add a document with name field Anna
+db.users.insertOne({
+  name: 'Anna'
+});
+
+// add a document with name field Michael  
+db.users.insertOne({
+  name: 'Michael'
+});
+
+// What do you observe when adding the document above and how can you fix the issue where you still can have duplicate values but it won't error when values for a index field is null
+db.users.dropIndex({ email: 1 });
+db.users.createIndex({ 
+  email: 1 
+}, {
+  unique: 1,
+  partialFilterExpression: {
+    email: {
+      $exists: true
+    }
+  }
+});
+
+// ------------------------- Understanding the Time-To-Live (TTL) Index --------
+// sessions collection
+
+// add one document with field data with any string, createdAt with current date?
+db.sessions.insertOne({
+  data: 'hello world',
+  createdAt: new Date()
+});
+
+// index the field createdAt in ascending order and also have all documents that have the indexed field createdAt be removed from database after 10 seconds?
+db.sessions.createIndex({
+  createdAt: 1
+}, {
+  expireAfterSeconds: 10
+});
+
+
+// add another document
+db.sessions.insertOne({
+  data: 'my name is web developer',
+  createdAt: new Date()
+});
+
+// does this method work for any fields or specific field and what do you observe?
+// whats a good use case for using this method
