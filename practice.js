@@ -153,3 +153,109 @@ db.sessions.insertOne({
 
 // does this method work for any fields or specific field and what do you observe?
 // whats a good use case for using this method
+
+// ------------------------- Understanding text indexes -----------
+// products collection
+
+// add these two documents
+// {
+//   title: 'A book',
+//   description: 'This is an awesome book about a young artist!'
+// }
+// {
+//   title: 'Red T-Shirt',
+//   description: "This T-Shirt is read and it's pretty awesome!"
+// }
+db.products.insertMany([{
+  title: 'A book',
+  description: 'This is an awesome book about a young artist!'
+}, {
+  title: 'Red T-Shirt',
+  description: "This T-Shirt is read and it's pretty awesome!"
+}]);
+
+// create a text index for description field
+db.products.createIndex({ description: 'text' });
+
+// find documents that have description contain 'awesome'
+db.products.find({
+  $text: {
+    $search: 'awesome'
+  }
+}).pretty();
+
+// find documents that have description containing either 'red' or 'book'
+db.products.find({
+  $text: {
+    $search: 'red book'
+  }
+}).pretty();
+
+// find documents that have description containing the phrase red book
+db.products.find({
+  $text: {
+    $search: "\"red book\""
+  }
+}).pretty();
+
+// ------------------------- Text Indexes & Sorting -----------
+// products collection
+
+// check to see how mongo is sorting the data
+db.products.find({
+  $text: {
+    $search: 'awesome t-shirt'
+  }
+}, {
+  score: {
+    $meta: 'textScore'
+  }
+}).pretty();
+
+// find a description field containing either 'awesome' or 't-shirt'
+// make sure you sort with best results
+db.products.find({
+  $text: {
+    $search: 'awesome t-shirt'
+  }
+}, {
+  score: {
+    $meta: 'textScore'
+  }
+}).sort({
+  score: {
+    $meta: 'textScore'
+  }
+}).pretty()
+
+// ------------------------- Creating Combined Text Indexes -----------
+// products collection
+
+// how many text indexes are you allowed to have?
+
+// create a combined text index with the fields title and description
+db.products.createIndex({
+  title: 'text',
+  description: 'text'
+});
+
+// add a new document 
+// {
+//   title: 'A Ship',
+//   description: 'Floats perfectly'
+// }
+
+// find a if any documents contain the word in the title or description field
+
+// ------------------------- Using Text Indexes to Exclude Words -----------
+// products collection
+
+// find products that have title or description field that contains the word awesome but not t-shirt
+
+db.products.find({ 
+  $text: {
+    $search: 'awesome -t-shirt'
+  } 
+}).pretty();
+
+// --------------------- Setting the Default Language & Using Weights ---------
